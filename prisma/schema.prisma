@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//Migrations com Prisma e Yarn
+
+//Model / Entidade:
+
+//Tabela que guardará as informações dos Clientes (que são empresas no caso)
+
+model Cliente {
+  id        String   @id @default(uuid())
+  emp       String // Código da empresa
+  cgc       String // CNPJ da empresa
+  des       String // Nome completo da empresa
+  tel       String // Telefone da empresa
+  edr       String // Endereço (rua) da empresa
+  bai       String // Bairro da empresa
+  cid       String // Cidade da empresa
+  ema       String // Email da empresa
+  pwd       String // Senha de acesso (com hashing aplicado)
+  sta       String //Status do cadastro
+  creat_at  DateTime @default(now())
+  update_at DateTime @updatedAt
+
+  // Pagamentos Pagamento[]
+
+  @@map("rub_emp")
+}
+
+model Plano {
+  id        String   @id @default(uuid())
+  des       String // Nome/descrição do plano
+  val       Float // Valor original do plano
+  max       Int // Máximo de funcionários
+  tip       String? // Tipo do plano: Mensal, Semestral, etc.
+  creat_at  DateTime @default(now())
+  update_at DateTime @updatedAt
+
+  // Pagamentos Pagamento[]
+
+  @@map("rub_pla")
+}
+
+model Pagamento {
+  id        String   @id @default(uuid())
+  cgc       String // CNPJ da empresa/cliente
+  lib       String   @db.Text // Liberação a partir do pagamento
+  dsc       Float // Valor dos descontos
+  pag       Float // Valor final após desconto
+  emi       String // Data de emissão no formato "xx/yyyy"
+  dat       String // Data de vencimento no formato "xx/yyyy"
+  rea       String // Data de pagamento realizado no formato "xx/yyyy"
+  ini       String // Mês de referência inicial no formato "xx/yyyy"
+  fim       String // Mês de referência final no formato "xx/yyyy"
+  mat       String
+  mestot    Int // Total de meses do plano
+  met       String // Método de pagamento (cartão, pix, boleto, etc.)
+  sta       String // Status do pagamento ("pendente", "pago", "cancelado", etc.)
+  ref       String // ID gerado pela API do banco
+  creat_at  DateTime @default(now())
+  update_at DateTime @updatedAt
+
+  // cliente_id String // Relacionamento com Cliente
+  // plano_id   String? // Relacionamento com Plano
+
+  // cliente Cliente @relation(fields: [cliente_id], references: [id], onDelete: Cascade)
+  // plano   Plano?  @relation(fields: [plano_id], references: [id], onDelete: SetNull)
+
+  @@map("rub_pag")
+}
