@@ -332,7 +332,7 @@ class ValidarPlanoService {
 
     // Envio do arquivo para o servidor externo
     try {
-      const url = "http://127.0.0.1/ruby/lic/liberacao.php";
+      const url = "http://www.micromoney.com.br/ruby/lic/liberacao.php";
       const response = await axios.post(
         url,
         { fileName: nomeArquivo, warq: conteudoArquivoCrip },
