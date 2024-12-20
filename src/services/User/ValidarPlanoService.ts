@@ -208,7 +208,8 @@ class ValidarPlanoService {
   }
   
 
-  private async criarArquivo(userData: any, externalReference: string, dateApproved: string): Promise<any> {
+
+private async criarArquivo(userData: any, externalReference: string, dateApproved: string): Promise<any> {
 
     const { EMP, CGC, DES, PRP, EDR, BAI, CID, TEL, LOG, PWD, CTR, INI, FIM, MAT, EMI, DAT, VER, VAL } = userData;
 
@@ -326,6 +327,14 @@ class ValidarPlanoService {
     const nomeArquivo = `LIB_${CGC}.txt`;
     const caminhoArquivo = `src/tmp/${nomeArquivo}`;
 
+    // Verifica se a pasta existe, caso contrário, cria
+    try {
+      await fs.mkdir('src/tmp', { recursive: true });
+      console.log('Pasta tmp criada ou já existe');
+    } catch (err) {
+      console.error('Erro ao criar a pasta tmp:', err);
+    }
+
     // Salvando o arquivo TXT criptografado
     await fs.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
     console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
@@ -351,6 +360,7 @@ class ValidarPlanoService {
 
     return caminhoArquivo;
 }
+
 
 }
 
