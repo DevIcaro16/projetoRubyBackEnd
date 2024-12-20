@@ -22,10 +22,17 @@ const app = express();
 app.use(express.json());
 
 // app.use(cors());
+// app.use(cors({
+//   origin: "http://www.micromoney.com.br",
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+// }));
+
 app.use(cors({
-  origin: "http://www.micromoney.com.br",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: (origin, callback) => {
+    // Permite requisições de qualquer origem
+    callback(null, true);
+  },
 }));
 
 
