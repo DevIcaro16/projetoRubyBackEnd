@@ -146,7 +146,7 @@ class EnvioDeEmailConfirmacaoService {
             <p style="font-size: 16px; color: #666; font-weight: bold;">
               Estamos muito felizes em tê-lo conosco! Para completar o cadastro da sua empresa ${empresa} e começar a aproveitar todos os nossos benefícios, clique no botão abaixo:
             </p>
-            <a href="http://192.168.56.1:3000/${rotaEnvio}?token=${token}" 
+            <a href="https://projeto-ruby-front-end.vercel.app/${rotaEnvio}?token=${token}" 
               style="display: inline-block; margin: 20px auto; padding: 15px 25px; color: #fff; background-color: #007bff; border-radius: 5px; text-decoration: none; font-size: 16px;">
               Confirmar Plano
             </a>
@@ -173,7 +173,7 @@ class EnvioDeEmailConfirmacaoService {
             <p style="font-size: 16px; color: #666; font-weight: bold;">
               Estamos muito felizes em tê-lo mais uma vez! Já possuímos o cadastro da sua empresa ${empresa}. Apenas Confirme seu Plano e volte a aproveitar todos os nossos benefícios, clique no botão abaixo:
             </p>
-            <a href="http://192.168.56.1:3000/${rotaEnvio}?token=${token}" 
+            <a href="https://projeto-ruby-front-end.vercel.app/${rotaEnvio}?token=${token}" 
               style="display: inline-block; margin: 20px auto; padding: 15px 25px; color: #fff; background-color: #007bff; border-radius: 5px; text-decoration: none; font-size: 16px;">
               Confirmar Plano
             </a>
