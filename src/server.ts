@@ -3,6 +3,8 @@ import express, { Request, Response, NextFunction } from "express";
 
 import "express-async-errors";
 
+
+
 //Por algum motivo, a ordem da importação do arquivo de rotas bagunçou o throw new Err().     
 //OBS: Deixar ele abaixo do import acima (empress-async-erros).
 import { router } from "./routes";
@@ -19,7 +21,13 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: "http://www.micromoney.com.br",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 
 app.use(router); 
 
