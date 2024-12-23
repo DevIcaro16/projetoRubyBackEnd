@@ -5,6 +5,8 @@ import { config } from "dotenv"; // Para carregar variáveis de ambiente
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import path from "path";
+import { Buffer } from 'buffer';
+
 
 
 config(); // Carregar variáveis de ambiente
@@ -12,46 +14,29 @@ config(); // Carregar variáveis de ambiente
 class ValidarPlanoService {
 
   // Função de Criptografia
-  async fCrip(cTexto) {
-    // Obtém a chave do arquivo .env
-    const nChave = parseInt(process.env.CRYPTO_KEY, 10);
-    if (isNaN(nChave)) {
-      throw new Error("Erro: Chave inválida");
-    }
 
-    // Inicializa o texto criptografado
-    let cTextoCriptografado = "";
-
-    // Divide o texto em palavras
-    const palavras = cTexto.split(" ");
-
-    // Percorre cada palavra do texto original
-    palavras.forEach((palavra) => {
-      const nTamanhoPalavra = palavra.length;
-
-      // Percorre cada caractere da palavra
-      for (let i = 0; i < nTamanhoPalavra; i++) {
-        const nCaractereOriginal = palavra.charCodeAt(i);
-
-        // Aplica o deslocamento baseado na chave, posição da letra e tamanho da palavra
-        let nCaractereCriptografado =
-          (nCaractereOriginal + nChave + (i + 1) + nTamanhoPalavra) % 256;
-
-        // Garante que o valor esteja no intervalo de caracteres ASCII
-        if (nCaractereCriptografado < 0) {
-          nCaractereCriptografado += 256;
-        }
-
-        // Adiciona o caractere criptografado ao resultado
-        cTextoCriptografado += String.fromCharCode(nCaractereCriptografado);
+  async  fCrip(text: string): Promise<string> {
+      // Obtém a chave do arquivo .env
+      const key = process.env.CRYPTO_KEY;
+      if (!key) {
+          throw new Error("Erro: Chave inválida ou não definida.");
       }
 
-      // Adiciona espaço entre palavras criptografadas
-      cTextoCriptografado += " ";
-    });
+      // Inicializa o texto criptografado
+      let encryptedText = "";
 
-    return cTextoCriptografado.trim();
+      // Percorre cada caractere do texto
+      for (let i = 0; i < text.length; i++) {
+          const charCode = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+          encryptedText += String.fromCharCode(charCode);
+      }
+
+      // Codifica o texto criptografado em Base64
+      const base64Encoded = Buffer.from(encryptedText, "binary").toString("base64");
+
+      return base64Encoded;
   }
+
 
   async calcMesesPlano(date1: string, date2: string): Promise<number> {
     // Separar mês e ano
