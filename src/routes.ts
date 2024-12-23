@@ -42,7 +42,7 @@ router.get('/consultarStatus/:paymentId', async (req: Request, res: Response) =>
             `https://api.mercadopago.com/v1/payments/${paymentId}`,
             {
                 headers: {
-                    Authorization: `Bearer APP_USR-2899009929281059-120120-bf555d0fe59391667050d2c836000ab8-2129182779`,
+                    Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
                 },
             }
         );
