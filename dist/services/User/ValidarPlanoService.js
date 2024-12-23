@@ -203,53 +203,34 @@ class ValidarPlanoService {
             // Recupera o ID do cliente (seja existente ou recém-criado)
             const clienteId = cliente.id;
             console.log(`ID do Cliente: ${clienteId}`);
-            // Conteúdo base (inserção de ID no TXT)
+            const pwdCrip = this.fCrip(PWD);
+            // Conteúdo base (somente informações do plano dentro da tag <SHA>)
             let conteudoBase = `
-      <lib>
-          <EMP>${clienteId}</EMP>
-          <CGC>${CGC}</CGC>
-          <DES>${DES}</DES>
-          <PRP>${PRP}</PRP>
-          <EDR>${EDR}</EDR>
-          <BAI>${BAI}</BAI>
-          <CID>${CID}</CID>
-          <TEL>${TEL}</TEL>
-          <LOG>${LOG}</LOG>
-          <PWD>${PWD}</PWD>
-          <CTR>${CTR}</CTR>
-          <INI>${INI}</INI>
-          <FIM>${FIM}</FIM>
-          <MAT>${MAT}</MAT>
-          <EMI>${EMI}</EMI>
-          <DAT>${DAT}</DAT>
-          <VER>${VER}</VER>
-          <VAL>${VAL}</VAL>
-      </lib>`.trim();
-            // Conteúdo completo do arquivo TXT (com SHA)
+    <CTR>${CTR}</CTR>
+    <INI>${INI}</INI>
+    <FIM>${FIM}</FIM>
+    <MAT>${MAT}</MAT>
+    <EMI>${EMI}</EMI>
+    <DAT>${DAT}</DAT>
+    <VER>${VER}</VER>
+    <VAL>${VAL}</VAL>
+    `.trim();
+            // Conteúdo completo do arquivo TXT
             let conteudoArquivoTxt = `
-      <lib>
-          <EMP>${clienteId}</EMP>
-          <CGC>${CGC}</CGC>
-          <DES>${DES}</DES>
-          <PRP>${PRP}</PRP>
-          <EDR>${EDR}</EDR>
-          <BAI>${BAI}</BAI>
-          <CID>${CID}</CID>
-          <TEL>${TEL}</TEL>
-          <LOG>${LOG}</LOG>
-          <PWD>${PWD}</PWD>
-          <CTR>${CTR}</CTR>
-          <INI>${INI}</INI>
-          <FIM>${FIM}</FIM>
-          <MAT>${MAT}</MAT>
-          <EMI>${EMI}</EMI>
-          <DAT>${DAT}</DAT>
-          <VER>${VER}</VER>
-          <VAL>${VAL}</VAL>
-          <SHA>
-      ${conteudoBase.replace(/<lib>|<\/lib>/g, "").replace(/^/gm, "        ")}
-          </SHA>
-      </lib>`.trim();
+    <lib>
+    <EMP>${clienteId}</EMP>
+    <CGC>${CGC}</CGC>
+    <DES>${DES}</DES>
+    <PRP>${PRP}</PRP>
+    <EDR>${EDR}</EDR>
+    <BAI>${BAI}</BAI>
+    <CID>${CID}</CID>
+    <TEL>${TEL}</TEL>
+    <LOG>${LOG}</LOG>
+    <PWD>${pwdCrip}</PWD>
+    <SHA>${conteudoBase}</SHA>
+    </lib>
+    `.replace(/\s*\n\s*/g, ""); // Remove linhas em branco
             console.log(`Conteúdo Arquivo TXT: ${conteudoArquivoTxt}`);
             // Criptografando o conteúdo do arquivo
             const conteudoArquivoCrip = yield this.fCrip(conteudoArquivoTxt);
