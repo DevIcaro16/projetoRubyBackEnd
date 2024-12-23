@@ -13,7 +13,18 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+// app.use(cors());
+// app.use(cors({
+//   origin: "http://www.micromoney.com.br",
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+// }));
+app.use((0, cors_1.default)({
+    origin: (origin, callback) => {
+        // Permite requisições de qualquer origem
+        callback(null, true);
+    },
+}));
 app.use(routes_1.router);
 app.use((err, req, res, next) => {
     if (err instanceof Error) {

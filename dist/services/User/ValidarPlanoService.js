@@ -288,9 +288,23 @@ class ValidarPlanoService {
             });
             const nomeArquivo = `LIB_${CGC}.txt`;
             const caminhoArquivo = `src/tmp/${nomeArquivo}`;
+            try {
+                yield fs_1.promises.mkdir('src/tmp', { recursive: true });
+                console.log('Pasta tmp criada ou já existe');
+            }
+            catch (err) {
+                console.error('Erro ao criar a pasta tmp:', err);
+                throw new Error('Não foi possível criar a pasta tmp.');
+            }
             // Salvando o arquivo TXT criptografado
-            yield fs_1.promises.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
-            console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+            try {
+                yield fs_1.promises.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
+                console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+            }
+            catch (err) {
+                console.error('Erro ao criar o arquivo TXT:', err);
+                throw new Error('Não foi possível criar o arquivo TXT.');
+            }
             // Envio do arquivo para o servidor externo
             try {
                 const url = "http://www.micromoney.com.br/ruby/lic/liberacao.php";

@@ -37,6 +37,7 @@ class ConfirmarPlanoController {
                     "VAL",
                     "NOM",
                 ];
+                console.log(requiredFields);
                 // Verificar campos obrigatórios
                 const missingFields = requiredFields.filter((field) => !req.body[field]);
                 if (missingFields.length > 0) {
