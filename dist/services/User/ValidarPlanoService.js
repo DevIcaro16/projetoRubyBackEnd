@@ -203,34 +203,48 @@ class ValidarPlanoService {
             // Recupera o ID do cliente (seja existente ou recém-criado)
             const clienteId = cliente.id;
             console.log(`ID do Cliente: ${clienteId}`);
-            const pwdCrip = this.fCrip(PWD);
-            // Conteúdo base (somente informações do plano dentro da tag <SHA>)
-            let conteudoBase = `
-    <CTR>${CTR}</CTR>
-    <INI>${INI}</INI>
-    <FIM>${FIM}</FIM>
-    <MAT>${MAT}</MAT>
-    <EMI>${EMI}</EMI>
-    <DAT>${DAT}</DAT>
-    <VER>${VER}</VER>
-    <VAL>${VAL}</VAL>
-    `.trim();
-            // Conteúdo completo do arquivo TXT
-            let conteudoArquivoTxt = `
+            const pwdCrip = yield this.fCrip(PWD);
+            const conteudoForaSHA = `
     <lib>
-    <EMP>${clienteId}</EMP>
-    <CGC>${CGC}</CGC>
-    <DES>${DES}</DES>
-    <PRP>${PRP}</PRP>
-    <EDR>${EDR}</EDR>
-    <BAI>${BAI}</BAI>
-    <CID>${CID}</CID>
-    <TEL>${TEL}</TEL>
-    <LOG>${LOG}</LOG>
-    <PWD>${pwdCrip}</PWD>
-    <SHA>${conteudoBase}</SHA>
+        <EMP>${clienteId}</EMP>
+        <CGC>${CGC}</CGC>
+        <DES>${DES}</DES>
+        <TEL>${TEL}</TEL>
+        <EDR>${EDR}</EDR>
+        <BAI>${BAI}</BAI>
+        <CID>${CID}</CID>
+        <LOG>${LOG}</LOG>
+        <PWD>${PWD}</PWD>
     </lib>
-    `.replace(/\s*\n\s*/g, ""); // Remove linhas em branco
+        `.trim();
+            // Construir o conteúdo dentro da tag <SHA>
+            const conteudoDentroSHA = `
+        <CTR>${CTR}</CTR>
+        <INI>${INI}</INI>
+        <FIM>${FIM}</FIM>
+        <MAT>${MAT}</MAT>
+        <EMI>${EMI}</EMI>
+        <DAT>${DAT}</DAT>
+        <VER>${VER}</VER>
+        <VAL>${VAL}</VAL>
+        `.trim();
+            // Montar o conteúdo completo com formatação apropriada
+            const conteudoArquivoTxt = `
+    <lib>
+        <EMP>${clienteId}</EMP>
+        <CGC>${CGC}</CGC>
+        <DES>${DES}</DES>
+        <TEL>${TEL}</TEL>
+        <EDR>${EDR}</EDR>
+        <BAI>${BAI}</BAI>
+        <CID>${CID}</CID>
+        <LOG>${LOG}</LOG>
+        <PWD>${PWD}</PWD>
+        <SHA>
+    ${conteudoDentroSHA.replace(/^/gm, '        ')}
+        </SHA>
+    </lib>
+        `.trim();
             console.log(`Conteúdo Arquivo TXT: ${conteudoArquivoTxt}`);
             // Criptografando o conteúdo do arquivo
             const conteudoArquivoCrip = yield this.fCrip(conteudoArquivoTxt);
