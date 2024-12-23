@@ -288,14 +288,13 @@ class ValidarPlanoService {
             });
             const nomeArquivo = `LIB_${CGC}.txt`;
             const caminhoArquivo = `src/tmp/${nomeArquivo}`;
-            try {
-                yield fs_1.promises.mkdir('src/tmp', { recursive: true });
-                console.log('Pasta tmp criada ou já existe');
-            }
-            catch (err) {
-                console.error('Erro ao criar a pasta tmp:', err);
-                throw new Error('Não foi possível criar a pasta tmp.');
-            }
+            //  try {
+            //       await fs.mkdir('src/tmp', { recursive: true });
+            //       console.log('Pasta tmp criada ou já existe');
+            //   } catch (err) {
+            //         console.error('Erro ao criar a pasta tmp:', err);
+            //         throw new Error('Não foi possível criar a pasta tmp.');
+            //   }
             // Salvando o arquivo TXT criptografado
             try {
                 yield fs_1.promises.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
