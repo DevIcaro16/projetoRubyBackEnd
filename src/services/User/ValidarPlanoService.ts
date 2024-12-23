@@ -327,17 +327,22 @@ private async criarArquivo(userData: any, externalReference: string, dateApprove
     const nomeArquivo = `LIB_${CGC}.txt`;
     const caminhoArquivo = `src/tmp/${nomeArquivo}`;
 
-    // Verifica se a pasta existe, caso contrário, cria
-    try {
-      await fs.mkdir('src/tmp', { recursive: true });
-      console.log('Pasta tmp criada ou já existe');
-    } catch (err) {
-      console.error('Erro ao criar a pasta tmp:', err);
-    }
+   try {
+        await fs.mkdir('src/tmp', { recursive: true });
+        console.log('Pasta tmp criada ou já existe');
+  } catch (err) {
+        console.error('Erro ao criar a pasta tmp:', err);
+        throw new Error('Não foi possível criar a pasta tmp.');
+  }
 
-    // Salvando o arquivo TXT criptografado
-    await fs.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
-    console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+  // Salvando o arquivo TXT criptografado
+  try {
+        await fs.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
+        console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+  } catch (err) {
+        console.error('Erro ao criar o arquivo TXT:', err);
+        throw new Error('Não foi possível criar o arquivo TXT.');
+  }
 
     // Envio do arquivo para o servidor externo
     try {
