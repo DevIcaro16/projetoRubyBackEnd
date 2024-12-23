@@ -4,6 +4,8 @@ import { promises as fs } from "fs"; // Para manipulação de arquivos
 import { config } from "dotenv"; // Para carregar variáveis de ambiente
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import path from "path";
+
 
 config(); // Carregar variáveis de ambiente
 
@@ -209,17 +211,20 @@ class ValidarPlanoService {
   
 
 
-private async criarArquivo(userData: any, externalReference: string, dateApproved: string): Promise<any> {
-
+  private async criarArquivo(
+    userData: any,
+    externalReference: string,
+    dateApproved: string
+  ): Promise<any> {
     const { EMP, CGC, DES, PRP, EDR, BAI, CID, TEL, LOG, PWD, CTR, INI, FIM, MAT, EMI, DAT, VER, VAL } = userData;
-
+  
     // Verifica se o cliente já existe pelo CGC (CNPJ)
     let cliente = await prismaClient.cliente.findFirst({
       where: {
-        cgc: CGC
-      }
+        cgc: CGC,
+      },
     });
-
+  
     // Caso não exista, cria o novo cliente
     if (!cliente) {
       cliente = await prismaClient.cliente.create({
@@ -233,77 +238,77 @@ private async criarArquivo(userData: any, externalReference: string, dateApprove
           cid: CID,
           ema: LOG,
           pwd: PWD,
-          sta: "ATIVO"
-        }
+          sta: "ATIVO",
+        },
       });
-
+  
       console.log("Cliente cadastrado com sucesso!");
     } else {
       console.log("Cliente já existe no banco de dados!");
     }
-
+  
     // Recupera o ID do cliente (seja existente ou recém-criado)
     const clienteId = cliente.id;
     console.log(`ID do Cliente: ${clienteId}`);
-
+  
     // Conteúdo base (inserção de ID no TXT)
     let conteudoBase = `
-    <lib>
-        <EMP>${clienteId}</EMP>
-        <CGC>${CGC}</CGC>
-        <DES>${DES}</DES>
-        <PRP>${PRP}</PRP>
-        <EDR>${EDR}</EDR>
-        <BAI>${BAI}</BAI>
-        <CID>${CID}</CID>
-        <TEL>${TEL}</TEL>
-        <LOG>${LOG}</LOG>
-        <PWD>${PWD}</PWD>
-        <CTR>${CTR}</CTR>
-        <INI>${INI}</INI>
-        <FIM>${FIM}</FIM>
-        <MAT>${MAT}</MAT>
-        <EMI>${EMI}</EMI>
-        <DAT>${DAT}</DAT>
-        <VER>${VER}</VER>
-        <VAL>${VAL}</VAL>
-    </lib>`.trim();
-
+      <lib>
+          <EMP>${clienteId}</EMP>
+          <CGC>${CGC}</CGC>
+          <DES>${DES}</DES>
+          <PRP>${PRP}</PRP>
+          <EDR>${EDR}</EDR>
+          <BAI>${BAI}</BAI>
+          <CID>${CID}</CID>
+          <TEL>${TEL}</TEL>
+          <LOG>${LOG}</LOG>
+          <PWD>${PWD}</PWD>
+          <CTR>${CTR}</CTR>
+          <INI>${INI}</INI>
+          <FIM>${FIM}</FIM>
+          <MAT>${MAT}</MAT>
+          <EMI>${EMI}</EMI>
+          <DAT>${DAT}</DAT>
+          <VER>${VER}</VER>
+          <VAL>${VAL}</VAL>
+      </lib>`.trim();
+  
     // Conteúdo completo do arquivo TXT (com SHA)
     let conteudoArquivoTxt = `
-    <lib>
-        <EMP>${clienteId}</EMP>
-        <CGC>${CGC}</CGC>
-        <DES>${DES}</DES>
-        <PRP>${PRP}</PRP>
-        <EDR>${EDR}</EDR>
-        <BAI>${BAI}</BAI>
-        <CID>${CID}</CID>
-        <TEL>${TEL}</TEL>
-        <LOG>${LOG}</LOG>
-        <PWD>${PWD}</PWD>
-        <CTR>${CTR}</CTR>
-        <INI>${INI}</INI>
-        <FIM>${FIM}</FIM>
-        <MAT>${MAT}</MAT>
-        <EMI>${EMI}</EMI>
-        <DAT>${DAT}</DAT>
-        <VER>${VER}</VER>
-        <VAL>${VAL}</VAL>
-        <SHA>
-    ${conteudoBase.replace(/<lib>|<\/lib>/g, '').replace(/^/gm, '        ')}
-        </SHA>
-    </lib>`.trim();
-
+      <lib>
+          <EMP>${clienteId}</EMP>
+          <CGC>${CGC}</CGC>
+          <DES>${DES}</DES>
+          <PRP>${PRP}</PRP>
+          <EDR>${EDR}</EDR>
+          <BAI>${BAI}</BAI>
+          <CID>${CID}</CID>
+          <TEL>${TEL}</TEL>
+          <LOG>${LOG}</LOG>
+          <PWD>${PWD}</PWD>
+          <CTR>${CTR}</CTR>
+          <INI>${INI}</INI>
+          <FIM>${FIM}</FIM>
+          <MAT>${MAT}</MAT>
+          <EMI>${EMI}</EMI>
+          <DAT>${DAT}</DAT>
+          <VER>${VER}</VER>
+          <VAL>${VAL}</VAL>
+          <SHA>
+      ${conteudoBase.replace(/<lib>|<\/lib>/g, "").replace(/^/gm, "        ")}
+          </SHA>
+      </lib>`.trim();
+  
     console.log(`Conteúdo Arquivo TXT: ${conteudoArquivoTxt}`);
-
+  
     // Criptografando o conteúdo do arquivo
     const conteudoArquivoCrip = await this.fCrip(conteudoArquivoTxt);
-
+  
     // Calcula meses do plano e formata data
     const calcMesesPlano = await this.calcMesesPlano(INI, FIM);
     const dataReaFormat = await this.formatarData(dateApproved);
-
+  
     // Criação do registro de plano no banco de dados
     const criarPlano = await prismaClient.pagamento.create({
       data: {
@@ -320,30 +325,22 @@ private async criarArquivo(userData: any, externalReference: string, dateApprove
         mat: MAT,
         met: "PIX",
         sta: "ATIVO",
-        ref: externalReference
+        ref: externalReference,
       },
     });
-
+  
     const nomeArquivo = `LIB_${CGC}.txt`;
-    const caminhoArquivo = `src/tmp/${nomeArquivo}`;
-
-  //  try {
-  //       await fs.mkdir('src/tmp', { recursive: true });
-  //       console.log('Pasta tmp criada ou já existe');
-  //   } catch (err) {
-  //         console.error('Erro ao criar a pasta tmp:', err);
-  //         throw new Error('Não foi possível criar a pasta tmp.');
-  //   }
-
+    const caminhoTmp = path.join("/tmp", nomeArquivo);
+  
     // Salvando o arquivo TXT criptografado
     try {
-          await fs.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
-          console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+      await fs.writeFile(caminhoTmp, conteudoArquivoCrip, "utf-8");
+      console.log("Arquivo TXT criado com sucesso:", caminhoTmp);
     } catch (err) {
-          console.error('Erro ao criar o arquivo TXT:', err);
-          throw new Error('Não foi possível criar o arquivo TXT.');
+      console.error("Erro ao criar o arquivo TXT:", err);
+      throw new Error("Não foi possível criar o arquivo TXT.");
     }
-
+  
     // Envio do arquivo para o servidor externo
     try {
       const url = "http://www.micromoney.com.br/ruby/lic/liberacao.php";
@@ -352,19 +349,19 @@ private async criarArquivo(userData: any, externalReference: string, dateApprove
         { fileName: nomeArquivo, warq: conteudoArquivoCrip },
         { headers: { "Content-Type": "application/json" } }
       );
-
+  
       console.log(`Arquivo enviado com sucesso! Resposta do servidor:`, response.data);
-
     } catch (error) {
       console.error("Erro ao enviar o arquivo:", error.message);
     }
-
+  
     if (criarPlano) {
       console.log(`Registro de Plano criado com sucesso!`);
     }
-
-    return caminhoArquivo;
-}
+  
+    return caminhoTmp;
+  }
+  
 
 
 }

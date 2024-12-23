@@ -19,6 +19,7 @@ const fs_1 = require("fs"); // Para manipulação de arquivos
 const dotenv_1 = require("dotenv"); // Para carregar variáveis de ambiente
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+const path_1 = __importDefault(require("path"));
 (0, dotenv_1.config)(); // Carregar variáveis de ambiente
 class ValidarPlanoService {
     // Função de Criptografia
@@ -187,8 +188,8 @@ class ValidarPlanoService {
             // Verifica se o cliente já existe pelo CGC (CNPJ)
             let cliente = yield prisma_1.default.cliente.findFirst({
                 where: {
-                    cgc: CGC
-                }
+                    cgc: CGC,
+                },
             });
             // Caso não exista, cria o novo cliente
             if (!cliente) {
@@ -203,8 +204,8 @@ class ValidarPlanoService {
                         cid: CID,
                         ema: LOG,
                         pwd: PWD,
-                        sta: "ATIVO"
-                    }
+                        sta: "ATIVO",
+                    },
                 });
                 console.log("Cliente cadastrado com sucesso!");
             }
@@ -216,51 +217,51 @@ class ValidarPlanoService {
             console.log(`ID do Cliente: ${clienteId}`);
             // Conteúdo base (inserção de ID no TXT)
             let conteudoBase = `
-    <lib>
-        <EMP>${clienteId}</EMP>
-        <CGC>${CGC}</CGC>
-        <DES>${DES}</DES>
-        <PRP>${PRP}</PRP>
-        <EDR>${EDR}</EDR>
-        <BAI>${BAI}</BAI>
-        <CID>${CID}</CID>
-        <TEL>${TEL}</TEL>
-        <LOG>${LOG}</LOG>
-        <PWD>${PWD}</PWD>
-        <CTR>${CTR}</CTR>
-        <INI>${INI}</INI>
-        <FIM>${FIM}</FIM>
-        <MAT>${MAT}</MAT>
-        <EMI>${EMI}</EMI>
-        <DAT>${DAT}</DAT>
-        <VER>${VER}</VER>
-        <VAL>${VAL}</VAL>
-    </lib>`.trim();
+      <lib>
+          <EMP>${clienteId}</EMP>
+          <CGC>${CGC}</CGC>
+          <DES>${DES}</DES>
+          <PRP>${PRP}</PRP>
+          <EDR>${EDR}</EDR>
+          <BAI>${BAI}</BAI>
+          <CID>${CID}</CID>
+          <TEL>${TEL}</TEL>
+          <LOG>${LOG}</LOG>
+          <PWD>${PWD}</PWD>
+          <CTR>${CTR}</CTR>
+          <INI>${INI}</INI>
+          <FIM>${FIM}</FIM>
+          <MAT>${MAT}</MAT>
+          <EMI>${EMI}</EMI>
+          <DAT>${DAT}</DAT>
+          <VER>${VER}</VER>
+          <VAL>${VAL}</VAL>
+      </lib>`.trim();
             // Conteúdo completo do arquivo TXT (com SHA)
             let conteudoArquivoTxt = `
-    <lib>
-        <EMP>${clienteId}</EMP>
-        <CGC>${CGC}</CGC>
-        <DES>${DES}</DES>
-        <PRP>${PRP}</PRP>
-        <EDR>${EDR}</EDR>
-        <BAI>${BAI}</BAI>
-        <CID>${CID}</CID>
-        <TEL>${TEL}</TEL>
-        <LOG>${LOG}</LOG>
-        <PWD>${PWD}</PWD>
-        <CTR>${CTR}</CTR>
-        <INI>${INI}</INI>
-        <FIM>${FIM}</FIM>
-        <MAT>${MAT}</MAT>
-        <EMI>${EMI}</EMI>
-        <DAT>${DAT}</DAT>
-        <VER>${VER}</VER>
-        <VAL>${VAL}</VAL>
-        <SHA>
-    ${conteudoBase.replace(/<lib>|<\/lib>/g, '').replace(/^/gm, '        ')}
-        </SHA>
-    </lib>`.trim();
+      <lib>
+          <EMP>${clienteId}</EMP>
+          <CGC>${CGC}</CGC>
+          <DES>${DES}</DES>
+          <PRP>${PRP}</PRP>
+          <EDR>${EDR}</EDR>
+          <BAI>${BAI}</BAI>
+          <CID>${CID}</CID>
+          <TEL>${TEL}</TEL>
+          <LOG>${LOG}</LOG>
+          <PWD>${PWD}</PWD>
+          <CTR>${CTR}</CTR>
+          <INI>${INI}</INI>
+          <FIM>${FIM}</FIM>
+          <MAT>${MAT}</MAT>
+          <EMI>${EMI}</EMI>
+          <DAT>${DAT}</DAT>
+          <VER>${VER}</VER>
+          <VAL>${VAL}</VAL>
+          <SHA>
+      ${conteudoBase.replace(/<lib>|<\/lib>/g, "").replace(/^/gm, "        ")}
+          </SHA>
+      </lib>`.trim();
             console.log(`Conteúdo Arquivo TXT: ${conteudoArquivoTxt}`);
             // Criptografando o conteúdo do arquivo
             const conteudoArquivoCrip = yield this.fCrip(conteudoArquivoTxt);
@@ -283,26 +284,19 @@ class ValidarPlanoService {
                     mat: MAT,
                     met: "PIX",
                     sta: "ATIVO",
-                    ref: externalReference
+                    ref: externalReference,
                 },
             });
             const nomeArquivo = `LIB_${CGC}.txt`;
-            const caminhoArquivo = `src/tmp/${nomeArquivo}`;
-            //  try {
-            //       await fs.mkdir('src/tmp', { recursive: true });
-            //       console.log('Pasta tmp criada ou já existe');
-            //   } catch (err) {
-            //         console.error('Erro ao criar a pasta tmp:', err);
-            //         throw new Error('Não foi possível criar a pasta tmp.');
-            //   }
+            const caminhoTmp = path_1.default.join("/tmp", nomeArquivo);
             // Salvando o arquivo TXT criptografado
             try {
-                yield fs_1.promises.writeFile(caminhoArquivo, conteudoArquivoCrip, "utf-8");
-                console.log("Arquivo TXT criado com sucesso:", caminhoArquivo);
+                yield fs_1.promises.writeFile(caminhoTmp, conteudoArquivoCrip, "utf-8");
+                console.log("Arquivo TXT criado com sucesso:", caminhoTmp);
             }
             catch (err) {
-                console.error('Erro ao criar o arquivo TXT:', err);
-                throw new Error('Não foi possível criar o arquivo TXT.');
+                console.error("Erro ao criar o arquivo TXT:", err);
+                throw new Error("Não foi possível criar o arquivo TXT.");
             }
             // Envio do arquivo para o servidor externo
             try {
@@ -316,7 +310,7 @@ class ValidarPlanoService {
             if (criarPlano) {
                 console.log(`Registro de Plano criado com sucesso!`);
             }
-            return caminhoArquivo;
+            return caminhoTmp;
         });
     }
 }
