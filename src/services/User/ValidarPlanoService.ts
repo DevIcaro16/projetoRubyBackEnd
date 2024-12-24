@@ -64,6 +64,7 @@ class ValidarPlanoService {
         TEL: string;
         LOG: string;
         PWD: string;
+        IDY: string;
         CTR: string;
         INI: string;
         FIM: string;

@@ -49,10 +49,12 @@ class envioDeEmailConfirmacaoController {
                 const extractedDataPropietario = extractedData['PRP'];
                 let extractedDataEmpresa = extractedData['DES'];
                 const extractedDataCNPJ = extractedData['CGC'];
+                const extractedDataIDY = extractedData['IDY'];
                 console.log(`EMAIL: ${extractedDataEmail}`);
                 console.log(`PROPRIETÁRIO: ${extractedDataPropietario}`);
                 console.log(`EMPRESA: ${extractedDataEmpresa}`);
                 console.log(`CNPJ: ${extractedDataCNPJ}`);
+                console.log(`IDY: ${extractedDataIDY}`);
                 // Gera o token JWT
                 // Valida o CNPJ na Receita Federal
                 const empresaValida = yield envioDeEmailConfirmacao.checkCnpj(extractedDataPropietario, extractedDataCNPJ, extractedDataEmail);
