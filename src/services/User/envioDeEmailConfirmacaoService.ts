@@ -8,44 +8,55 @@ import axios from "axios";
 config();
 
 class EnvioDeEmailConfirmacaoService {
-  // Função para extrair os dados das tags
-  async extractTags(content: string) {
+
+  async encodeIDY(idy: string): Promise<string> {
+    return Buffer.from(idy).toString('base64');
+}
+
+// Função para extrair os dados das tags
+async extractTags(content: string): Promise<Record<string, string>> {
     const extractedData: Record<string, string> = {};
     const tags = [
-      "EMP",
-      "CGC",
-      "DES",
-      "PRP",
-      "EDR",
-      "BAI",
-      "CID",
-      "TEL",
-      "LOG",
-      "PWD",
-      "IDY",
-      "CTR",
-      "INI",
-      "FIM",
-      "MAT",
-      "EMI",
-      "VER",
-      "ENV"
+        "EMP",
+        "CGC",
+        "DES",
+        "PRP",
+        "EDR",
+        "BAI",
+        "CID",
+        "TEL",
+        "LOG",
+        "PWD",
+        "IDY",
+        "CTR",
+        "INI",
+        "FIM",
+        "MAT",
+        "EMI",
+        "VER",
+        "ENV"
     ];
 
-    tags.forEach((tag) => {
-      const startTag = `<${tag}>`;
-      const endTag = `</${tag}>`;
-      const startIndex = content.indexOf(startTag);
-      const endIndex = content.indexOf(endTag);
+    for (const tag of tags) {
+        const startTag = `<${tag}>`;
+        const endTag = `</${tag}>`;
+        const startIndex = content.indexOf(startTag);
+        const endIndex = content.indexOf(endTag);
 
-      if (startIndex !== -1 && endIndex !== -1) {
-        const value = content.substring(startIndex + startTag.length, endIndex);
-        extractedData[tag] = value.trim();
-      }
-    });
+        if (startIndex !== -1 && endIndex !== -1) {
+            const value = content.substring(startIndex + startTag.length, endIndex);
+            extractedData[tag] = value.trim();
+        }
+
+        // Codifica a tag IDY, se existir
+        if (tag === "IDY" && extractedData["IDY"]) {
+            extractedData["IDY"] = await this.encodeIDY(extractedData["IDY"]);
+        }
+    }
 
     return extractedData;
-  }
+}
+
 
   async generateToken(data: object): Promise<string> {
     return jwt.sign(data, process.env.JWT_SECRET_1 as string, { expiresIn: "1h" });

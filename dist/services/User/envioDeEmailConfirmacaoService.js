@@ -24,6 +24,11 @@ class EnvioDeEmailConfirmacaoService {
         // Armazena os e-mails enviados em uma variável global
         this.emailsEnviados = [];
     }
+    encodeIDY(idy) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return Buffer.from(idy).toString('base64');
+        });
+    }
     // Função para extrair os dados das tags
     extractTags(content) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -48,7 +53,7 @@ class EnvioDeEmailConfirmacaoService {
                 "VER",
                 "ENV"
             ];
-            tags.forEach((tag) => {
+            for (const tag of tags) {
                 const startTag = `<${tag}>`;
                 const endTag = `</${tag}>`;
                 const startIndex = content.indexOf(startTag);
@@ -57,7 +62,11 @@ class EnvioDeEmailConfirmacaoService {
                     const value = content.substring(startIndex + startTag.length, endIndex);
                     extractedData[tag] = value.trim();
                 }
-            });
+                // Codifica a tag IDY, se existir
+                if (tag === "IDY" && extractedData["IDY"]) {
+                    extractedData["IDY"] = yield this.encodeIDY(extractedData["IDY"]);
+                }
+            }
             return extractedData;
         });
     }
