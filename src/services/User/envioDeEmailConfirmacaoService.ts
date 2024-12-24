@@ -10,8 +10,12 @@ config();
 
 class EnvioDeEmailConfirmacaoService {
 
-  public emailsEnviados: { email: string; timestamp: number }[] = [];
 
+  constructor() {
+    console.log("Serviço de envio de e-mail inicializado.");
+  }
+
+  public emailsEnviados: { email: string; timestamp: number }[] = [];
 
   // Função para extrair os dados das tags
   async extractTags(content: string) {
@@ -96,68 +100,119 @@ class EnvioDeEmailConfirmacaoService {
       return "2";
     }
   }
-// Armazena os e-mails enviados em uma variável global
 
-async enviarEmail(
-  email: string,
-  propietario: string,
-  empresa: string,
-  token: string = "",
-  emailTemplate?: string,
-  tipoRotaEnvio?: string
-): Promise<boolean> {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+ 
 
-  const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const momentoAtual = Date.now();
-
-  // Log do estado inicial
-  console.log("Emails Enviados Antes da Limpeza:", this.emailsEnviados);
-
-  // Remove e-mails antigos
-  this.emailsEnviados = this.emailsEnviados.filter(
-    (item) => momentoAtual - item.timestamp <= intervaloEntreEmails
-  );
-
-  console.log("Emails Enviados Após a Limpeza:", this.emailsEnviados);
-
-  // Verifica se o e-mail foi enviado nos últimos 5 minutos
-  const emailJaEnviado = this.emailsEnviados.some(
-    (item) => item.email === email
-  );
-  console.log("Email Já Enviado?", emailJaEnviado);
-
-  if (emailJaEnviado) {
-    console.log("E-mail já enviado nos últimos 5 minutos:", email);
-    return false; // Retorna ou envia o aviso
+  private limparEmailsAntigos(): void {
+      const agora = Date.now();
+      const intervaloLimpeza = 300000; // 5 minutos em milissegundos
+      this.emailsEnviados = this.emailsEnviados.filter(
+          (registro) => agora - registro.timestamp <= intervaloLimpeza
+      );
+      console.log("Emails após limpeza:", this.emailsEnviados);
   }
 
-  console.log("Adicionando novo e-mail à lista:", { email, timestamp: momentoAtual });
-  this.emailsEnviados.push({ email, timestamp: momentoAtual });
+  private verificarSeEmailJaEnviado(email: string): boolean {
+      return this.emailsEnviados.some((registro) => registro.email === email);
+  }
 
-  // Opções do e-mail
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: `Olá, ${propietario}! Confirme o seu Plano RUBY`,
-    html: emailTemplate || this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio),
-  };
+  public async enviarEmail(
+    email: string,
+    propietario: string,
+    empresa: string,
+    token: string = "",
+    emailTemplate?: string,
+    tipoRotaEnvio?: string
+): Promise<boolean> {
+    this.limparEmailsAntigos();
 
-  // Enviar o e-mail
-  const envio = await transporter.sendMail(mailOptions);
-  console.log("Resultado do Envio:", envio);
-  return !!envio;
+    // Verifica se o e-mail já foi enviado recentemente
+    if (this.verificarSeEmailJaEnviado(email)) {
+        console.log(`O e-mail ${email} já foi enviado recentemente.`);
+        return false; // Evita envio duplicado
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD,
+        },
+    });
+
+    const momentoAtual = Date.now();
+
+    // Adiciona o e-mail à lista de enviados
+    const novoRegistro = { email, timestamp: momentoAtual };
+    this.emailsEnviados.push(novoRegistro);
+    console.log("Novo registro adicionado:", novoRegistro);
+
+    let subjectText = "";
+    let emailContent = "";
+
+    if (this.verificarSeEmailJaEnviado(email)) {
+        // Se já enviado, usar o template de aviso
+        subjectText = `Olá, ${propietario}!`;
+        emailContent = `
+            <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
+                <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+                    <header style="background-color: #FFF; padding: 20px;">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
+                    </header>
+                    <main style="padding: 20px;">
+                        <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
+                        <p style="font-size: 16px; color: #666; font-weight: bold;">
+                            Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
+                        </p>
+                        <p style="margin-top: 20px; font-size: 14px; color: #999;">
+                            Se você não solicitou esta ação, ignore este e-mail.
+                        </p>
+                    </main>
+                    <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
+                        © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
+                    </footer>
+                </div>
+            </div>`;
+    } else {
+        // Se não enviado, preparar o envio normal
+        subjectText = `Olá, ${propietario}! Confirme o seu Plano RUBY`;
+        emailContent =
+            emailTemplate ||
+            this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
+
+        // Adiciona o e-mail atual à lista de enviados
+        this.emailsEnviados.push({ email, timestamp: momentoAtual });
+    }
+
+    // Opções do e-mail
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: subjectText,
+        html: emailContent,
+    };
+
+    try {
+        // Envia o e-mail
+        const envio = await transporter.sendMail(mailOptions);
+        console.log("E-mail enviado:", envio);
+        return !!envio;
+    } catch (error) {
+        console.error("Erro ao enviar o e-mail:", error);
+        // Remove o e-mail da lista de enviados em caso de erro
+        this.emailsEnviados = this.emailsEnviados.filter(
+            (registro) => registro.email !== email
+        );
+        return false;
+    }
 }
 
 
+public getEmailsEnviados() {
+  return this.emailsEnviados;
+}
   
 
   private getDefaultEmailTemplate(
