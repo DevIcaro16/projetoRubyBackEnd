@@ -150,6 +150,7 @@ class EnvioDeEmailConfirmacaoService {
             else {
                 // Se não enviado, preparar o envio normal
                 subjectText = `Olá, ${propietario}! Confirme o seu Plano RUBY`;
+                
                 emailContent =
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
