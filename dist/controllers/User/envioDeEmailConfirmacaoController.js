@@ -21,9 +21,20 @@ class envioDeEmailConfirmacaoController {
                     message: 'Nenhum arquivo foi enviado. Por favor, forneça um arquivo válido.'
                 });
             }
+            function decrypt(encryptedText, key) {
+                // Decodifica o texto de Base64
+                const decodedText = atob(encryptedText);
+                let decryptedText = '';
+                for (let i = 0; i < decodedText.length; i++) {
+                    const charCode = decodedText.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    decryptedText += String.fromCharCode(charCode);
+                }
+                return decryptedText;
+            }
             try {
+                const secretKey = 'rubymicromoney2025';
                 // Decodifica o conteúdo do arquivo Base64
-                const decodedContent = Buffer.from(file, 'base64').toString('utf-8');
+                const decodedContent = decrypt(file, secretKey); // `file` é o conteúdo criptografado recebido
                 console.log("Arquivo decodificado:", decodedContent);
                 const envioDeEmailConfirmacao = new envioDeEmailConfirmacaoService_1.EnvioDeEmailConfirmacaoService();
                 // Extração de tags do conteúdo do arquivo
