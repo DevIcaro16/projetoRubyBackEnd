@@ -177,7 +177,7 @@ async enviarEmail(
     const envio = await transporter.sendMail(mailOptions);
     return !!envio;
   } catch (error) {
-    console.error('Erro ao enviar e-mail:', error);
+    console.error('Erro ao enviar e-mail teste:', error);
     return false;
   }
 }
