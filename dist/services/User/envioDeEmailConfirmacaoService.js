@@ -118,7 +118,7 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-            const tmpDir = path_1.default.join('/tmp2', 'email_logs'); // Usar '/tmp' no Vercel
+            const tmpDir = path_1.default.join('/tmp', 'email_logs'); // Usar '/tmp' no Vercel
             // Verifica e cria o diretório temporário se não existir
             if (!fs_1.default.existsSync(tmpDir)) {
                 try {

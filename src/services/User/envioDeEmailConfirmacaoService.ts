@@ -120,7 +120,7 @@ async enviarEmail(
   });
 
   const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const tmpDir = path.join('/tmp2', 'email_logs'); // Usar '/tmp' no Vercel
+  const tmpDir = path.join('/tmp', 'email_logs'); // Usar '/tmp' no Vercel
 
   // Verifica e cria o diretório temporário se não existir
   if (!fs.existsSync(tmpDir)) {
