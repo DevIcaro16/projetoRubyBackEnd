@@ -21,8 +21,8 @@ const axios_1 = __importDefault(require("axios"));
 (0, dotenv_1.config)();
 class EnvioDeEmailConfirmacaoService {
     constructor() {
+        // Armazena os e-mails enviados em uma variável global
         this.emailsEnviados = [];
-        console.log("Serviço de envio de e-mail inicializado.");
     }
     // Função para extrair os dados das tags
     extractTags(content) {
@@ -103,26 +103,8 @@ class EnvioDeEmailConfirmacaoService {
             }
         });
     }
-    limparEmailsAntigos() {
-        const agora = Date.now();
-        const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
-        this.emailsEnviados = this.emailsEnviados.filter((registro) => agora - registro.timestamp <= intervaloLimpeza);
-        console.log("Emails após limpeza:", this.emailsEnviados);
-    }
-    verificarSeEmailJaEnviado(email) {
-        const agora = Date.now();
-        const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
-        return this.emailsEnviados.some((registro) => registro.email === email && agora - registro.timestamp <= intervaloLimpeza);
-    }
     enviarEmail(email_1, propietario_1, empresa_1) {
         return __awaiter(this, arguments, void 0, function* (email, propietario, empresa, token = "", emailTemplate, tipoRotaEnvio) {
-            // Limpar e-mails antigos da lista antes de verificar novos envios
-            this.limparEmailsAntigos();
-            // Verifica se o e-mail já foi enviado recentemente
-            if (this.verificarSeEmailJaEnviado(email)) {
-                console.log(`O e-mail ${email} já foi enviado recentemente.`);
-                return false; // Evita envio duplicado
-            }
             const transporter = nodemailer_1.default.createTransport({
                 host: "smtp.gmail.com",
                 port: 465,
@@ -132,33 +114,37 @@ class EnvioDeEmailConfirmacaoService {
                     pass: process.env.GMAIL_APP_PASSWORD,
                 },
             });
+            const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
             const momentoAtual = Date.now();
-            // Variáveis para conteúdo e assunto do e-mail
+            // Limpa e-mails antigos (mais de 5 minutos)
+            this.emailsEnviados = this.emailsEnviados.filter((item) => momentoAtual - item.timestamp <= intervaloEntreEmails);
+            // Verifica se o e-mail foi enviado nos últimos 5 minutos
+            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails);
             let subjectText = "";
             let emailContent = "";
-            if (this.verificarSeEmailJaEnviado(email)) {
+            if (emailJaEnviado) {
                 // Se já enviado, usar o template de aviso
                 subjectText = `Olá, ${propietario}!`;
                 emailContent = `
-            <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
-                <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-                    <header style="background-color: #FFF; padding: 20px;">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
-                    </header>
-                    <main style="padding: 20px;">
-                        <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
-                        <p style="font-size: 16px; color: #666; font-weight: bold;">
-                            Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
-                        </p>
-                        <p style="margin-top: 20px; font-size: 14px; color: #999;">
-                            Se você não solicitou esta ação, ignore este e-mail.
-                        </p>
-                    </main>
-                    <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
-                        © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
-                    </footer>
-                </div>
-            </div>`;
+      <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
+        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+          <header style="background-color: #FFF; padding: 20px;">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
+          </header>
+          <main style="padding: 20px;">
+            <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
+            <p style="font-size: 16px; color: #666; font-weight: bold;">
+              Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
+            </p>
+            <p style="margin-top: 20px; font-size: 14px; color: #999;">
+              Se você não solicitou esta ação, ignore este e-mail.
+            </p>
+          </main>
+          <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
+            © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
+          </footer>
+        </div>
+      </div>`;
             }
             else {
                 // Se não enviado, preparar o envio normal
@@ -166,7 +152,7 @@ class EnvioDeEmailConfirmacaoService {
                 emailContent =
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
-                // Adiciona o e-mail atual à lista de enviados após o envio
+                // Adicionar o e-mail atual à lista de enviados
                 this.emailsEnviados.push({ email, timestamp: momentoAtual });
             }
             // Opções do e-mail
@@ -176,20 +162,16 @@ class EnvioDeEmailConfirmacaoService {
                 subject: subjectText,
                 html: emailContent,
             };
+            // Enviar o e-mail
             try {
-                // Envia o e-mail
                 const envio = yield transporter.sendMail(mailOptions);
-                console.log("E-mail enviado:", envio);
                 return !!envio;
             }
             catch (error) {
-                console.error("Erro ao enviar o e-mail:", error);
+                console.error('Erro ao enviar e-mail:', error);
                 return false;
             }
         });
-    }
-    getEmailsEnviados() {
-        return this.emailsEnviados;
     }
     getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio) {
         let rotaEnvio = 'ConfirmarCadastro';
