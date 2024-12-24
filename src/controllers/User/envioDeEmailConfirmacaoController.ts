@@ -32,7 +32,8 @@ class envioDeEmailConfirmacaoController {
             const secretKey = 'rubymicromoney2025';
             
             // Decodifica o conteúdo do arquivo Base64
-            const decodedContent= decrypt(file, secretKey); // `file` é o conteúdo criptografado recebido
+            const decodedContent64 = Buffer.from(file, 'base64').toString('utf-8');
+            const decodedContent= decrypt(decodedContent64, secretKey); // `file` é o conteúdo criptografado recebido
             console.log("Arquivo decodificado:", decodedContent);
 
             const envioDeEmailConfirmacao = new EnvioDeEmailConfirmacaoService();
