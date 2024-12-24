@@ -209,6 +209,8 @@ class ValidarPlanoService {
         cgc: CGC,
       },
     });
+
+    const pwdCrip = await this.fCrip(PWD);
   
     // Caso não exista, cria o novo cliente
     if (!cliente) {
@@ -222,7 +224,7 @@ class ValidarPlanoService {
           bai: BAI,
           cid: CID,
           ema: LOG,
-          pwd: PWD,
+          pwd: pwdCrip,
           sta: "ATIVO",
         },
       });
@@ -236,36 +238,35 @@ class ValidarPlanoService {
     const clienteId = cliente.id;
     console.log(`ID do Cliente: ${clienteId}`);
 
-    const pwdCrip = await this.fCrip(PWD);
   
-    const conteudoForaSHA = `
-    <lib>
-        <EMP>${clienteId}</EMP>
-        <CGC>${CGC}</CGC>
-        <DES>${DES}</DES>
-        <TEL>${TEL}</TEL>
-        <EDR>${EDR}</EDR>
-        <BAI>${BAI}</BAI>
-        <CID>${CID}</CID>
-        <LOG>${LOG}</LOG>
-        <PWD>${PWD}</PWD>
-    </lib>
-        `.trim();
+    // const conteudoForaSHA = `
+    // <lib>
+    //     <EMP>${clienteId}</EMP>
+    //     <CGC>${CGC}</CGC>
+    //     <DES>${DES}</DES>
+    //     <TEL>${TEL}</TEL>
+    //     <EDR>${EDR}</EDR>
+    //     <BAI>${BAI}</BAI>
+    //     <CID>${CID}</CID>
+    //     <LOG>${LOG}</LOG>
+    // </lib>
+    //     `.trim();
     
         // Construir o conteúdo dentro da tag <SHA>
         const conteudoDentroSHA = `
+        <PLA></PLA>
+        <VER>${VER}</VER>
         <CTR>${CTR}</CTR>
         <INI>${INI}</INI>
         <FIM>${FIM}</FIM>
         <MAT>${MAT}</MAT>
         <EMI>${EMI}</EMI>
         <DAT>${DAT}</DAT>
-        <VER>${VER}</VER>
         <VAL>${VAL}</VAL>
         `.trim();
     
         // Montar o conteúdo completo com formatação apropriada
-        const conteudoArquivoTxt = `
+        let conteudoArquivoTxt = `
     <lib>
         <EMP>${clienteId}</EMP>
         <CGC>${CGC}</CGC>
@@ -284,8 +285,7 @@ class ValidarPlanoService {
 
     console.log(`Conteúdo Arquivo TXT: ${conteudoArquivoTxt}`);
   
-    // Criptografando o conteúdo do arquivo
-    const conteudoArquivoCrip = await this.fCrip(conteudoArquivoTxt);
+    
   
     // Calcula meses do plano e formata data
     const calcMesesPlano = await this.calcMesesPlano(INI, FIM);
@@ -310,6 +310,16 @@ class ValidarPlanoService {
         ref: externalReference,
       },
     });
+
+    const idPlano = criarPlano.id;
+
+    conteudoArquivoTxt = conteudoArquivoTxt.replace(
+      '<PLA></PLA>',
+      `<PLA>${idPlano}</PLA>`
+    );
+
+    // Criptografando o conteúdo do arquivo
+    const conteudoArquivoCrip = await this.fCrip(conteudoArquivoTxt);
   
     const nomeArquivo = `LIB_${CGC}.txt`;
     const caminhoTmp = path.join("/tmp", nomeArquivo);
