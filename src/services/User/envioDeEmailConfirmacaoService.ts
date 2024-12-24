@@ -118,7 +118,7 @@ async enviarEmail(
   });
 
   const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const tmpDir = path.join(__dirname, 'tmp', 'email_logs');
+  const tmpDir = path.join('tmp2', 'email_logs');
 
   // Garante que o diretório temporário exista
   if (!fs.existsSync(tmpDir)) {
