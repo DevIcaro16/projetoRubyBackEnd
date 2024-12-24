@@ -122,7 +122,8 @@ class EnvioDeEmailConfirmacaoService {
   
     // Verifica se o e-mail foi enviado nos últimos 5 minutos
     const emailJaEnviado = emailsEnviados.some((item) => item.email === email);
-    let subjectText = "";
+    
+    let subjectText = ""; 
     let emailContent = "";
   
     if (emailJaEnviado) {
