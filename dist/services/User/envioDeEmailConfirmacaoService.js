@@ -118,7 +118,7 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-            const tmpDir = path_1.default.join('tmp2', 'email_logs');
+            const tmpDir = path_1.default.resolve('tmp2', 'email_logs');
             // Garante que o diretório temporário exista
             if (!fs_1.default.existsSync(tmpDir)) {
                 fs_1.default.mkdirSync(tmpDir, { recursive: true });
