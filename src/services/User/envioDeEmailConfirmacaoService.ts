@@ -118,15 +118,15 @@ async enviarEmail(
   });
 
   const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const tmpDir = path.join('/tmp2', 'email_logs');
+  // const tmpDir = path.join('/tmp2', 'email_logs');
 
   // Garante que o diretório temporário exista
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir, { recursive: true });
-  }
+  // if (!fs.existsSync(tmpDir)) {
+  //   fs.mkdirSync(tmpDir, { recursive: true });
+  // }
 
   const emailHash = `${email.replace(/[@.]/g, '_')}.txt`;
-  const emailLogPath = path.join(tmpDir, emailHash);
+  const emailLogPath = path.join("/tmp2", emailHash);
 
   let emailJaEnviado = false;
   let subjectText = "";
