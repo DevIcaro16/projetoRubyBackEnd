@@ -118,13 +118,19 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-            // const tmpDir = path.join('/tmp2', 'email_logs');
+            const tmpDir = path_1.default.join('/', 'tmp2'); // Diretório base para logs de e-mail
             // Garante que o diretório temporário exista
-            // if (!fs.existsSync(tmpDir)) {
-            //   fs.mkdirSync(tmpDir, { recursive: true });
-            // }
+            try {
+                if (!fs_1.default.existsSync(tmpDir)) {
+                    fs_1.default.mkdirSync(tmpDir, { recursive: true });
+                }
+            }
+            catch (error) {
+                console.error('Erro ao criar o diretório temporário:', error);
+                return false;
+            }
             const emailHash = `${email.replace(/[@.]/g, '_')}.txt`;
-            const emailLogPath = path_1.default.join("/tmp2", emailHash);
+            const emailLogPath = path_1.default.join(tmpDir, emailHash);
             let emailJaEnviado = false;
             let subjectText = "";
             let emailContent = "";
@@ -167,7 +173,13 @@ class EnvioDeEmailConfirmacaoService {
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
                 // Registra o envio no arquivo temporário
-                fs_1.default.writeFileSync(emailLogPath, Date.now().toString());
+                try {
+                    fs_1.default.writeFileSync(emailLogPath, Date.now().toString());
+                }
+                catch (error) {
+                    console.error('Erro ao gravar arquivo temporário:', error);
+                    return false;
+                }
             }
             // Opções do e-mail
             const mailOptions = {
