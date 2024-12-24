@@ -15,9 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnvioDeEmailConfirmacaoService = void 0;
 const prisma_1 = __importDefault(require("../../prisma"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
+// import { promises as fs } from "fs";
 const dotenv_1 = require("dotenv");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const axios_1 = __importDefault(require("axios"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 (0, dotenv_1.config)();
 class EnvioDeEmailConfirmacaoService {
     constructor() {
@@ -115,13 +118,24 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-            const momentoAtual = Date.now();
-            // Limpa e-mails antigos (mais de 5 minutos)
-            this.emailsEnviados = this.emailsEnviados.filter((item) => momentoAtual - item.timestamp <= intervaloEntreEmails);
-            // Verifica se o e-mail foi enviado nos últimos 5 minutos
-            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails);
+            const tmpDir = path_1.default.join(__dirname, 'tmp', 'email_logs');
+            // Garante que o diretório temporário exista
+            if (!fs_1.default.existsSync(tmpDir)) {
+                fs_1.default.mkdirSync(tmpDir, { recursive: true });
+            }
+            const emailHash = `${email.replace(/[@.]/g, '_')}.txt`;
+            const emailLogPath = path_1.default.join(tmpDir, emailHash);
+            let emailJaEnviado = false;
             let subjectText = "";
             let emailContent = "";
+            if (fs_1.default.existsSync(emailLogPath)) {
+                const logContent = fs_1.default.readFileSync(emailLogPath, 'utf-8');
+                const timestamp = parseInt(logContent, 10);
+                // Verifica se o e-mail foi enviado nos últimos 5 minutos
+                if (Date.now() - timestamp <= intervaloEntreEmails) {
+                    emailJaEnviado = true;
+                }
+            }
             if (emailJaEnviado) {
                 // Se já enviado, usar o template de aviso
                 subjectText = `Olá, ${propietario}!`;
@@ -152,8 +166,8 @@ class EnvioDeEmailConfirmacaoService {
                 emailContent =
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
-                // Adicionar o e-mail atual à lista de enviados
-                this.emailsEnviados.push({ email, timestamp: momentoAtual });
+                // Registra o envio no arquivo temporário
+                fs_1.default.writeFileSync(emailLogPath, Date.now().toString());
             }
             // Opções do e-mail
             const mailOptions = {
@@ -168,7 +182,7 @@ class EnvioDeEmailConfirmacaoService {
                 return !!envio;
             }
             catch (error) {
-                console.error('Erro ao enviar e-mail teste:', error);
+                console.error('Erro ao enviar e-mail:', error);
                 return false;
             }
         });

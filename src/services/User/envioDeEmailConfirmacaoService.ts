@@ -1,9 +1,12 @@
 import prismaClient from "../../prisma";
 import nodemailer from "nodemailer";
-import { promises as fs } from "fs";
+// import { promises as fs } from "fs";
 import { config } from "dotenv";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import fs from 'fs';
+import path from 'path';
+
 
 config();
 
@@ -115,20 +118,29 @@ async enviarEmail(
   });
 
   const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const momentoAtual = Date.now();
+  const tmpDir = path.join(__dirname, 'tmp', 'email_logs');
 
-  // Limpa e-mails antigos (mais de 5 minutos)
-  this.emailsEnviados = this.emailsEnviados.filter(
-    (item) => momentoAtual - item.timestamp <= intervaloEntreEmails
-  );
+  // Garante que o diretório temporário exista
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
 
-  // Verifica se o e-mail foi enviado nos últimos 5 minutos
-  const emailJaEnviado = this.emailsEnviados.some(
-    (item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails
-  );
+  const emailHash = `${email.replace(/[@.]/g, '_')}.txt`;
+  const emailLogPath = path.join(tmpDir, emailHash);
 
+  let emailJaEnviado = false;
   let subjectText = "";
   let emailContent = "";
+
+  if (fs.existsSync(emailLogPath)) {
+    const logContent = fs.readFileSync(emailLogPath, 'utf-8');
+    const timestamp = parseInt(logContent, 10);
+
+    // Verifica se o e-mail foi enviado nos últimos 5 minutos
+    if (Date.now() - timestamp <= intervaloEntreEmails) {
+      emailJaEnviado = true;
+    }
+  }
 
   if (emailJaEnviado) {
     // Se já enviado, usar o template de aviso
@@ -160,8 +172,8 @@ async enviarEmail(
       emailTemplate ||
       this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
 
-    // Adicionar o e-mail atual à lista de enviados
-    this.emailsEnviados.push({ email, timestamp: momentoAtual });
+    // Registra o envio no arquivo temporário
+    fs.writeFileSync(emailLogPath, Date.now().toString());
   }
 
   // Opções do e-mail
@@ -177,10 +189,11 @@ async enviarEmail(
     const envio = await transporter.sendMail(mailOptions);
     return !!envio;
   } catch (error) {
-    console.error('Erro ao enviar e-mail teste:', error);
+    console.error('Erro ao enviar e-mail:', error);
     return false;
   }
 }
+
 
   
 
