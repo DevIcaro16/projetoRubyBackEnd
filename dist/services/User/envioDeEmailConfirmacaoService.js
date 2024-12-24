@@ -21,7 +21,6 @@ const axios_1 = __importDefault(require("axios"));
 (0, dotenv_1.config)();
 class EnvioDeEmailConfirmacaoService {
     constructor() {
-        // Armazena os e-mails enviados em uma variável global
         this.emailsEnviados = [];
     }
     // Função para extrair os dados das tags
@@ -103,6 +102,7 @@ class EnvioDeEmailConfirmacaoService {
             }
         });
     }
+    // Armazena os e-mails enviados em uma variável global
     enviarEmail(email_1, propietario_1, empresa_1) {
         return __awaiter(this, arguments, void 0, function* (email, propietario, empresa, token = "", emailTemplate, tipoRotaEnvio) {
             const transporter = nodemailer_1.default.createTransport({
@@ -116,63 +116,30 @@ class EnvioDeEmailConfirmacaoService {
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
             const momentoAtual = Date.now();
-            // Adicione logs para cada passo
+            // Log do estado inicial
             console.log("Emails Enviados Antes da Limpeza:", this.emailsEnviados);
+            // Remove e-mails antigos
             this.emailsEnviados = this.emailsEnviados.filter((item) => momentoAtual - item.timestamp <= intervaloEntreEmails);
             console.log("Emails Enviados Após a Limpeza:", this.emailsEnviados);
-            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails);
+            // Verifica se o e-mail foi enviado nos últimos 5 minutos
+            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email);
             console.log("Email Já Enviado?", emailJaEnviado);
-            console.log("Momento Atual:", momentoAtual);
-            console.log("Intervalo Entre Emails (ms):", intervaloEntreEmails);
-            // Log no push do e-mail
-            if (!emailJaEnviado) {
-                console.log("Adicionando novo e-mail à lista:", { email, timestamp: momentoAtual });
-                this.emailsEnviados.push({ email, timestamp: momentoAtual });
-            }
-            let subjectText = "";
-            let emailContent = "";
             if (emailJaEnviado) {
-                // Se já enviado, usar o template de aviso
-                subjectText = `Olá, ${propietario}!`;
-                emailContent = `
-      <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
-        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-          <header style="background-color: #FFF; padding: 20px;">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
-          </header>
-          <main style="padding: 20px;">
-            <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
-            <p style="font-size: 16px; color: #666; font-weight: bold;">
-              Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
-            </p>
-            <p style="margin-top: 20px; font-size: 14px; color: #999;">
-              Se você não solicitou esta ação, ignore este e-mail.
-            </p>
-          </main>
-          <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
-            © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
-          </footer>
-        </div>
-      </div>`;
+                console.log("E-mail já enviado nos últimos 5 minutos:", email);
+                return false; // Retorna ou envia o aviso
             }
-            else {
-                // Se não enviado, preparar o envio normal
-                subjectText = `Olá, ${propietario}! Confirme o seu Plano RUBY`;
-                emailContent =
-                    emailTemplate ||
-                        this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
-                // Adicionar o e-mail atual à lista de enviados
-                this.emailsEnviados.push({ email, timestamp: momentoAtual });
-            }
+            console.log("Adicionando novo e-mail à lista:", { email, timestamp: momentoAtual });
+            this.emailsEnviados.push({ email, timestamp: momentoAtual });
             // Opções do e-mail
             const mailOptions = {
                 from: process.env.EMAIL_USER,
                 to: email,
-                subject: subjectText,
-                html: emailContent,
+                subject: `Olá, ${propietario}! Confirme o seu Plano RUBY`,
+                html: emailTemplate || this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio),
             };
             // Enviar o e-mail
             const envio = yield transporter.sendMail(mailOptions);
+            console.log("Resultado do Envio:", envio);
             return !!envio;
         });
     }
