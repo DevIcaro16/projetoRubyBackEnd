@@ -104,17 +104,21 @@ class EnvioDeEmailConfirmacaoService {
  
 
   private limparEmailsAntigos(): void {
-      const agora = Date.now();
-      const intervaloLimpeza = 300000; // 5 minutos em milissegundos
-      this.emailsEnviados = this.emailsEnviados.filter(
-          (registro) => agora - registro.timestamp <= intervaloLimpeza
-      );
-      console.log("Emails após limpeza:", this.emailsEnviados);
-  }
+    const agora = Date.now();
+    const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
+    this.emailsEnviados = this.emailsEnviados.filter(
+        (registro) => agora - registro.timestamp <= intervaloLimpeza
+    );
+    console.log("Emails após limpeza:", this.emailsEnviados);
+}
 
   private verificarSeEmailJaEnviado(email: string): boolean {
-      return this.emailsEnviados.some((registro) => registro.email === email);
-  }
+    const agora = Date.now();
+    const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
+    return this.emailsEnviados.some(
+        (registro) => registro.email === email && agora - registro.timestamp <= intervaloLimpeza
+    );
+}
 
   public async enviarEmail(
     email: string,
@@ -124,6 +128,7 @@ class EnvioDeEmailConfirmacaoService {
     emailTemplate?: string,
     tipoRotaEnvio?: string
 ): Promise<boolean> {
+    // Limpar e-mails antigos da lista antes de verificar novos envios
     this.limparEmailsAntigos();
 
     // Verifica se o e-mail já foi enviado recentemente
@@ -144,11 +149,7 @@ class EnvioDeEmailConfirmacaoService {
 
     const momentoAtual = Date.now();
 
-    // Adiciona o e-mail à lista de enviados
-    const novoRegistro = { email, timestamp: momentoAtual };
-    this.emailsEnviados.push(novoRegistro);
-    console.log("Novo registro adicionado:", novoRegistro);
-
+    // Variáveis para conteúdo e assunto do e-mail
     let subjectText = "";
     let emailContent = "";
 
@@ -182,7 +183,7 @@ class EnvioDeEmailConfirmacaoService {
             emailTemplate ||
             this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
 
-        // Adiciona o e-mail atual à lista de enviados
+        // Adiciona o e-mail atual à lista de enviados após o envio
         this.emailsEnviados.push({ email, timestamp: momentoAtual });
     }
 
@@ -201,14 +202,9 @@ class EnvioDeEmailConfirmacaoService {
         return !!envio;
     } catch (error) {
         console.error("Erro ao enviar o e-mail:", error);
-        // Remove o e-mail da lista de enviados em caso de erro
-        this.emailsEnviados = this.emailsEnviados.filter(
-            (registro) => registro.email !== email
-        );
         return false;
     }
 }
-
 
 public getEmailsEnviados() {
   return this.emailsEnviados;

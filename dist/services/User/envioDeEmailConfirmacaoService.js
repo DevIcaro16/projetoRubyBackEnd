@@ -105,15 +105,18 @@ class EnvioDeEmailConfirmacaoService {
     }
     limparEmailsAntigos() {
         const agora = Date.now();
-        const intervaloLimpeza = 300000; // 5 minutos em milissegundos
+        const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
         this.emailsEnviados = this.emailsEnviados.filter((registro) => agora - registro.timestamp <= intervaloLimpeza);
         console.log("Emails após limpeza:", this.emailsEnviados);
     }
     verificarSeEmailJaEnviado(email) {
-        return this.emailsEnviados.some((registro) => registro.email === email);
+        const agora = Date.now();
+        const intervaloLimpeza = 5 * 60 * 1000; // 5 minutos em milissegundos
+        return this.emailsEnviados.some((registro) => registro.email === email && agora - registro.timestamp <= intervaloLimpeza);
     }
     enviarEmail(email_1, propietario_1, empresa_1) {
         return __awaiter(this, arguments, void 0, function* (email, propietario, empresa, token = "", emailTemplate, tipoRotaEnvio) {
+            // Limpar e-mails antigos da lista antes de verificar novos envios
             this.limparEmailsAntigos();
             // Verifica se o e-mail já foi enviado recentemente
             if (this.verificarSeEmailJaEnviado(email)) {
@@ -130,10 +133,7 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const momentoAtual = Date.now();
-            // Adiciona o e-mail à lista de enviados
-            const novoRegistro = { email, timestamp: momentoAtual };
-            this.emailsEnviados.push(novoRegistro);
-            console.log("Novo registro adicionado:", novoRegistro);
+            // Variáveis para conteúdo e assunto do e-mail
             let subjectText = "";
             let emailContent = "";
             if (this.verificarSeEmailJaEnviado(email)) {
@@ -166,7 +166,7 @@ class EnvioDeEmailConfirmacaoService {
                 emailContent =
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
-                // Adiciona o e-mail atual à lista de enviados
+                // Adiciona o e-mail atual à lista de enviados após o envio
                 this.emailsEnviados.push({ email, timestamp: momentoAtual });
             }
             // Opções do e-mail
@@ -184,8 +184,6 @@ class EnvioDeEmailConfirmacaoService {
             }
             catch (error) {
                 console.error("Erro ao enviar o e-mail:", error);
-                // Remove o e-mail da lista de enviados em caso de erro
-                this.emailsEnviados = this.emailsEnviados.filter((registro) => registro.email !== email);
                 return false;
             }
         });
