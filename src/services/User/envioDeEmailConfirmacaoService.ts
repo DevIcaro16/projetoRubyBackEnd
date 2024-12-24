@@ -92,7 +92,7 @@ class EnvioDeEmailConfirmacaoService {
     }
   }
 
-
+  
 // Armazena os e-mails enviados em uma variável global
 public emailsEnviados: { email: string; timestamp: number }[] = [];
 
