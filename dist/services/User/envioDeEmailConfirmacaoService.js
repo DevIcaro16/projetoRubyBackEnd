@@ -116,10 +116,19 @@ class EnvioDeEmailConfirmacaoService {
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
             const momentoAtual = Date.now();
-            // Limpa e-mails antigos (mais de 5 minutos)
+            // Adicione logs para cada passo
+            console.log("Emails Enviados Antes da Limpeza:", this.emailsEnviados);
             this.emailsEnviados = this.emailsEnviados.filter((item) => momentoAtual - item.timestamp <= intervaloEntreEmails);
-            // Verifica se o e-mail foi enviado nos últimos 5 minutos
+            console.log("Emails Enviados Após a Limpeza:", this.emailsEnviados);
             const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails);
+            console.log("Email Já Enviado?", emailJaEnviado);
+            console.log("Momento Atual:", momentoAtual);
+            console.log("Intervalo Entre Emails (ms):", intervaloEntreEmails);
+            // Log no push do e-mail
+            if (!emailJaEnviado) {
+                console.log("Adicionando novo e-mail à lista:", { email, timestamp: momentoAtual });
+                this.emailsEnviados.push({ email, timestamp: momentoAtual });
+            }
             let subjectText = "";
             let emailContent = "";
             if (emailJaEnviado) {
