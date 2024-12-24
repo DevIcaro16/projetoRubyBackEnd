@@ -10,8 +10,11 @@ config();
 class EnvioDeEmailConfirmacaoService {
 
   async encodeIDY(idy: string): Promise<string> {
-    return Buffer.from(idy).toString('base64');
+    const encoded = Buffer.from(idy).toString('base64');
+    console.log(`Valor codificado do IDY: ${idy} ${encoded}`);
+    return encoded;
 }
+
 
 // Função para extrair os dados das tags
 async extractTags(content: string): Promise<Record<string, string>> {

@@ -26,7 +26,9 @@ class EnvioDeEmailConfirmacaoService {
     }
     encodeIDY(idy) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Buffer.from(idy).toString('base64');
+            const encoded = Buffer.from(idy).toString('base64');
+            console.log(`Valor codificado do IDY: ${idy} ${encoded}`);
+            return encoded;
         });
     }
     // Função para extrair os dados das tags
