@@ -32,13 +32,14 @@ class envioDeEmailConfirmacaoController {
                 return decryptedText;
             }
             try {
-                const secretKey = 'rubymicromoney2025';
+                const secretKey = process.env.CRYPTO_KEY;
                 // Decodifica o conteúdo do arquivo Base64
                 const decodedContent = decrypt(file, secretKey); // `file` é o conteúdo criptografado recebido
                 console.log("Arquivo decodificado:", decodedContent);
                 const envioDeEmailConfirmacao = new envioDeEmailConfirmacaoService_1.EnvioDeEmailConfirmacaoService();
                 // Extração de tags do conteúdo do arquivo
                 const extractedData = yield envioDeEmailConfirmacao.extractTags(decodedContent);
+                console.log(JSON.stringify(extractedData));
                 if (!extractedData['LOG'] || !extractedData['PRP'] || !extractedData['DES'] || !extractedData['CGC']) {
                     return res.status(400).json({
                         success: false,
@@ -49,12 +50,12 @@ class envioDeEmailConfirmacaoController {
                 const extractedDataPropietario = extractedData['PRP'];
                 let extractedDataEmpresa = extractedData['DES'];
                 const extractedDataCNPJ = extractedData['CGC'];
-                const extractedDataIDY = extractedData['IDY'];
+                // const extractedDataIDY = extractedData['IDY'];
                 console.log(`EMAIL: ${extractedDataEmail}`);
                 console.log(`PROPRIETÁRIO: ${extractedDataPropietario}`);
                 console.log(`EMPRESA: ${extractedDataEmpresa}`);
                 console.log(`CNPJ: ${extractedDataCNPJ}`);
-                console.log(`IDY: ${extractedDataIDY}`);
+                // console.log(`IDY: ${extractedDataIDY}`);
                 // Gera o token JWT
                 // Valida o CNPJ na Receita Federal
                 const empresaValida = yield envioDeEmailConfirmacao.checkCnpj(extractedDataPropietario, extractedDataCNPJ, extractedDataEmail);
