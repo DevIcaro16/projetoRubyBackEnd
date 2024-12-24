@@ -39,6 +39,7 @@ class EnvioDeEmailConfirmacaoService {
                 "TEL",
                 "LOG",
                 "PWD",
+                "IDY",
                 "CTR",
                 "INI",
                 "FIM",
