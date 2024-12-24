@@ -118,22 +118,23 @@ class EnvioDeEmailConfirmacaoService {
                 },
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-            const tmpDir = path_1.default.join('/', 'tmp2'); // Diretório base para logs de e-mail
-            // Garante que o diretório temporário exista
-            try {
-                if (!fs_1.default.existsSync(tmpDir)) {
+            const tmpDir = path_1.default.join('/tmp', 'email_logs'); // Usar '/tmp' no Vercel
+            // Verifica e cria o diretório temporário se não existir
+            if (!fs_1.default.existsSync(tmpDir)) {
+                try {
                     fs_1.default.mkdirSync(tmpDir, { recursive: true });
                 }
-            }
-            catch (error) {
-                console.error('Erro ao criar o diretório temporário:', error);
-                return false;
+                catch (error) {
+                    console.error(`Erro ao criar o diretório temporário: ${error.message}`);
+                    return false; // Retorna falso se não puder criar o diretório
+                }
             }
             const emailHash = `${email.replace(/[@.]/g, '_')}.txt`;
             const emailLogPath = path_1.default.join(tmpDir, emailHash);
             let emailJaEnviado = false;
             let subjectText = "";
             let emailContent = "";
+            // Verifica se o e-mail foi enviado recentemente, verificando o arquivo no diretório temporário
             if (fs_1.default.existsSync(emailLogPath)) {
                 const logContent = fs_1.default.readFileSync(emailLogPath, 'utf-8');
                 const timestamp = parseInt(logContent, 10);
@@ -145,26 +146,7 @@ class EnvioDeEmailConfirmacaoService {
             if (emailJaEnviado) {
                 // Se já enviado, usar o template de aviso
                 subjectText = `Olá, ${propietario}!`;
-                emailContent = `
-      <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
-        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
-          <header style="background-color: #FFF; padding: 20px;">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
-          </header>
-          <main style="padding: 20px;">
-            <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
-            <p style="font-size: 16px; color: #666; font-weight: bold;">
-              Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
-            </p>
-            <p style="margin-top: 20px; font-size: 14px; color: #999;">
-              Se você não solicitou esta ação, ignore este e-mail.
-            </p>
-          </main>
-          <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
-            © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
-          </footer>
-        </div>
-      </div>`;
+                emailContent = `... (conteúdo do e-mail de aviso) ...`;
             }
             else {
                 // Se não enviado, preparar o envio normal
@@ -173,13 +155,7 @@ class EnvioDeEmailConfirmacaoService {
                     emailTemplate ||
                         this.getDefaultEmailTemplate(propietario, empresa, token, tipoRotaEnvio);
                 // Registra o envio no arquivo temporário
-                try {
-                    fs_1.default.writeFileSync(emailLogPath, Date.now().toString());
-                }
-                catch (error) {
-                    console.error('Erro ao gravar arquivo temporário:', error);
-                    return false;
-                }
+                fs_1.default.writeFileSync(emailLogPath, Date.now().toString());
             }
             // Opções do e-mail
             const mailOptions = {
