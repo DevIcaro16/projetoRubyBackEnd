@@ -120,7 +120,7 @@ async enviarEmail(
   });
 
   const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
-  const tmpDir = path.join('/tmp', 'email_logs'); // Usar '/tmp' no Vercel
+  const tmpDir = path.join('/tmp2', 'email_logs'); // Usar '/tmp' no Vercel
 
   // Verifica e cria o diretório temporário se não existir
   if (!fs.existsSync(tmpDir)) {
@@ -139,13 +139,14 @@ async enviarEmail(
   let subjectText = "";
   let emailContent = "";
 
+
   // Verifica se o e-mail foi enviado recentemente, verificando o arquivo no diretório temporário
   if (fs.existsSync(emailLogPath)) {
     const logContent = fs.readFileSync(emailLogPath, 'utf-8');
     const timestamp = parseInt(logContent, 10);
 
-    // Verifica se o e-mail foi enviado nos últimos 5 minutos
-    if (Date.now() - timestamp <= intervaloEntreEmails) {
+    // Verifica se o timestamp do último envio está no intervalo de 5 minutos
+    if (timestamp && Date.now() - timestamp <= intervaloEntreEmails) {
       emailJaEnviado = true;
     }
   }
@@ -153,7 +154,25 @@ async enviarEmail(
   if (emailJaEnviado) {
     // Se já enviado, usar o template de aviso
     subjectText = `Olá, ${propietario}!`;
-    emailContent = `... (conteúdo do e-mail de aviso) ...`;
+    emailContent = `<div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; text-align: center;">
+        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+          <header style="background-color: #FFF; padding: 20px;">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvV804ZTmDRXUG4cxSodfy6fGW5Jin9hb9ZA&s" alt="Logo" style="max-width: 100%; height: auto;">
+          </header>
+          <main style="padding: 20px;">
+            <h1 style="color: #007bff;">${propietario}, <br> Já lhe enviamos um e-mail!</h1>
+            <p style="font-size: 16px; color: #666; font-weight: bold;">
+              Em nosso sistema já consta o envio de e-mail para sua empresa ${empresa}. Caso não tenha recebido, aguarde alguns minutos e tente novamente.
+            </p>
+            <p style="margin-top: 20px; font-size: 14px; color: #999;">
+              Se você não solicitou esta ação, ignore este e-mail.
+            </p>
+          </main>
+          <footer style="background-color: #f1f1f1; padding: 10px; font-size: 12px; color: #666;">
+            © 2024 RUBY - MICROFOLHA. Todos os direitos reservados.
+          </footer>
+        </div>
+      </div>`;
   } else {
     // Se não enviado, preparar o envio normal
     subjectText = `Olá, ${propietario}! Confirme o seu Plano RUBY`;
