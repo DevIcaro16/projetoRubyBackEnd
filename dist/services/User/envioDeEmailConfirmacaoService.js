@@ -116,14 +116,10 @@ class EnvioDeEmailConfirmacaoService {
             });
             const intervaloEntreEmails = 5 * 60 * 1000; // 5 minutos em milissegundos
             const momentoAtual = Date.now();
-            // Remove e-mails antigos da lista (mais de 5 minutos)
-            for (let i = this.emailsEnviados.length - 1; i >= 0; i--) {
-                if (momentoAtual - this.emailsEnviados[i].timestamp > intervaloEntreEmails) {
-                    this.emailsEnviados.splice(i, 1);
-                }
-            }
+            // Limpa e-mails antigos (mais de 5 minutos)
+            this.emailsEnviados = this.emailsEnviados.filter((item) => momentoAtual - item.timestamp <= intervaloEntreEmails);
             // Verifica se o e-mail foi enviado nos últimos 5 minutos
-            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email);
+            const emailJaEnviado = this.emailsEnviados.some((item) => item.email === email && momentoAtual - item.timestamp <= intervaloEntreEmails);
             let subjectText = "";
             let emailContent = "";
             if (emailJaEnviado) {
